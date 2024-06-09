@@ -1,5 +1,13 @@
 import React, {useEffect, useState} from 'react';
-import {StyleSheet, View, Text, TouchableOpacity, Alert} from 'react-native';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  Alert,
+  Image,
+} from 'react-native';
+import {BASE_URL} from './src/api/api';
 
 import {
   GoogleSignin,
@@ -25,11 +33,16 @@ const App = () => {
     });
   }, []);
 
+  // Collect user token ==========================================================
+
   const signIn = async () => {
     try {
       await GoogleSignin.hasPlayServices();
       const userInfo = await GoogleSignin.signIn();
+      console.log('UserInfo =========>:', userInfo);
       setUser(userInfo);
+      getGmailInfo(userInfo.user);
+
       // sendUserDataToBackend(userInfo.user);
     } catch (error) {
       console.log('Message', error.message);
@@ -42,6 +55,30 @@ const App = () => {
       } else {
         console.log('Some Other Error Happened');
       }
+    }
+  };
+
+  const getGmailInfo = async userData => {
+    const requestOptions = {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        user: userData,
+      }),
+    };
+
+    try {
+      const response = await fetch(
+        `${BASE_URL}/account/api/send-gmail-login/`,
+        requestOptions,
+      );
+      if (response.ok) {
+        console.log('User data sent successfully');
+      } else {
+        console.log('Failed to send user data', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error sending user data:', error);
     }
   };
 
@@ -66,8 +103,18 @@ const App = () => {
         />
       ) : (
         <TouchableOpacity onPress={signOut}>
+          <Image
+            source={{uri: user?.user?.photo}}
+            style={styles.profileImage}
+          />
           <Text>{user?.user?.email}</Text>
           <Text>{user?.user?.name}</Text>
+          <Text>Email: {user?.user?.email}</Text>
+          <Text>Name: {user?.user?.name}</Text>
+          <Text>ID: {user?.user?.id}</Text>
+          <Text>Given Name: {user?.user?.givenName}</Text>
+          <Text>Family Name: {user?.user?.familyName}</Text>
+
           <Text>Logout</Text>
         </TouchableOpacity>
       )}
@@ -80,6 +127,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  profileImage: {
+    width: 150,
+    height: 150,
+    borderRadius: 20,
+    marginTop: 10,
   },
 });
 

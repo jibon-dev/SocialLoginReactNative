@@ -124,6 +124,8 @@ yarn add @react-native-google-signin/google-signin
 ```bash
 # install package
 yarn add @react-native-google-signin/google-signin
+
+
 ```
 
 
